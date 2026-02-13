@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#ff4d6d" />
+  <title>Kilian + Josie</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    :root{
+      --bg:#0b0b10;
+      --text:#f7f7ff;
+      --muted:#b9b9c7;
+      --accent:#ff4d6d;
+      --accent2:#ff8fab;
+      --shadow: 0 16px 60px rgba(0,0,0,.55);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 50% -20%, rgba(255,77,109,.22), transparent 60%),
+                  radial-gradient(900px 600px at 10% 20%, rgba(255,143,171,.12), transparent 55%),
+                  radial-gradient(900px 600px at 90% 30%, rgba(255,77,109,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      overflow:hidden;
+    }
+    .fade{animation: fade .35s ease both}
+    @keyframes fade{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:translateY(0)}}
+    .screen{position:absolute; inset:0; display:flex; flex-direction:column;}
+    .content{
+      padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      overflow:auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+    .title{font-weight:950; letter-spacing:.2px; font-size:18px; display:flex; align-items:center; gap:10px;}
+    .pill{
+      font-size:12px; color:rgba(255,255,255,.85);
+      padding:7px 10px; border-radius:999px;
+      background:rgba(255,77,109,.14);
+      border:1px solid rgba(255,77,109,.22);
+    }
+    .btn{
+      appearance:none; border:0; color:var(--text);
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px;
+      border-radius:14px;
+      display:inline-flex; align-items:center; gap:10px;
+      cursor:pointer;
+      transition: transform .08s ease, background .18s ease, border-color .18s ease;
+      user-select:none;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(255,77,109,.9), rgba(255,143,171,.85));
+      border-color: rgba(255,255,255,.18);
+      box-shadow: 0 12px 32px rgba(255,77,109,.22);
+    }
+    .btn.ghost{background:transparent}
+    .btn.small{padding:8px 10px; border-radius:12px; font-size:13px}
+    .spacer{flex:1}
+    .tiny{font-size:12px; color:rgba(255,255,255,.72); line-height:1.35}
+
+    /* Loading */
+    .loading{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:28px;}
+    .heartWrap{
+      width:min(360px, 94vw);
+      background: rgba(21,21,36,.58);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:22px 20px;
+      text-align:center;
+      backdrop-filter: blur(10px);
+    }
+    .heartBtn{
+      width: 220px;
+      height: 190px;
+      margin: 10px auto 6px;
+      border:0;
+      background: transparent;
+      cursor:pointer;
+      position:relative;
+      display:block;
+      filter: drop-shadow(0 18px 40px rgba(255,77,109,.28));
+    }
+    .heartBtn:active{transform:scale(.99)}
+    .heartBtn .namesInHeart{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding: 0 22px;
+      font-weight: 1000;
+      letter-spacing:.4px;
+      font-size: 18px;
+      color: rgba(255,255,255,.96);
+      text-shadow: 0 10px 26px rgba(0,0,0,.35);
+      transform: translateY(6px);
+      pointer-events:none;
+      line-height:1.1;
+    }
+    .sub{color:var(--muted); font-size:13px; margin-top:8px; line-height:1.35;}
+    .ring{
+      width: 140px; height: 140px;
+      margin: 0 auto 10px;
+      position:relative;
+    }
+    .ring::after{
+      content:"";
+      position:absolute; inset:-14px;
+      border-radius:999px;
+      border:2px solid rgba(255,77,109,.35);
+      animation: ring 1.6s ease-out infinite;
+    }
+    @keyframes ring{from{transform:scale(.75); opacity:.95}to{transform:scale(1.25); opacity:0}}
+
+    /* Home hearts */
+    .heartGrid{display:grid; grid-template-columns: 1fr; gap: 12px;}
+    .heartTile{
+      position:relative;
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(21,21,36,.68);
+      box-shadow: 0 14px 50px rgba(0,0,0,.45);
+      padding: 14px 14px 16px;
+      backdrop-filter: blur(10px);
+      cursor:pointer;
+      user-select:none;
+      overflow:hidden;
+      transition: transform .08s ease;
+    }
+    .heartTile:active{transform:scale(.995)}
+    .heartTileHead{display:flex; align-items:center; justify-content:space-between; gap: 10px;}
+    .heartTile h3{margin:0; font-size:16px; font-weight:1000}
+    .heartTile p{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
+    .heartBg{position:absolute; right:-28px; top:-32px; width: 150px; height: 150px; opacity:.18; transform: rotate(10deg);}
+
+    /* Generic card */
+    .card{
+      background: rgba(21,21,36,.68);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: 0 14px 50px rgba(0,0,0,.45);
+      padding:14px;
+      backdrop-filter: blur(10px);
+    }
+    .card h3{margin:0 0 6px; font-size:16px; font-weight:950}
+    .card p{margin:0; color:var(--muted); font-size:13px; line-height:1.35}
+
+    /* Slideshow */
+    .slideshow{
+      margin-top:10px;
+      border-radius: 18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      position:relative;
+      aspect-ratio: 4 / 3;
+    }
+    .slideImg{
+      width:100%; height:100%;
+      object-fit: cover;
+      display:block;
+      transform: scale(1.02);
+      animation: kenburns 7s ease-in-out infinite alternate;
+    }
+    @keyframes kenburns{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.08) translate(-2%, -1%)}}
+    .slideControls{
+      position:absolute; inset:auto 10px 10px 10px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      pointer-events:none;
+    }
+    .dots{
+      display:flex; gap:6px;
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      pointer-events:auto;
+      backdrop-filter: blur(6px);
+    }
+    .dot{width:7px; height:7px; border-radius:999px; background: rgba(255,255,255,.30);}
+    .dot.active{background: rgba(255,255,255,.92)}
+    .ctrlBtn{
+      pointer-events:auto;
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:14px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .ctrlBtn:active{transform:scale(.98)}
+    code.k{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 12px; color: rgba(255,255,255,.9);
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+      padding: 2px 6px; border-radius: 999px;
+      white-space:nowrap;
+    }
+
+    /* Treasure map - checklist */
+    .map{
+      position:relative;
+      border-radius: var(--radius);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.10);
+      background: radial-gradient(900px 240px at 50% 0%, rgba(255,77,109,.18), transparent 60%),
+                  rgba(0,0,0,.20);
+      padding: 14px 14px 18px;
+      box-shadow: var(--shadow);
+    }
+    .mapTop{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;}
+    .mapTitle{font-weight: 1000; font-size: 16px; letter-spacing:.2px;}
+    .mapHint{font-size:12px; color:rgba(255,255,255,.72); line-height:1.35;}
+    .trail{position:relative; margin-top:8px; padding: 12px 6px 10px;}
+    .trailLine{
+      position:absolute; left: 26px; top: 10px; bottom: 16px; width: 4px; border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,77,109,.75), rgba(255,143,171,.22));
+      opacity:.65;
+    }
+    .nodes{display:flex; flex-direction:column; gap:14px; padding-left: 48px;}
+    .node{position:relative; display:flex; flex-direction:column; gap:8px;}
+    .pin{
+      position:absolute; left: -38px; top: 2px;
+      width: 26px; height: 26px; border-radius: 999px;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .pin.done{background: rgba(124,255,178,.12); border-color: rgba(124,255,178,.24);}
+    .nodeTitle{font-weight: 950; font-size: 14px;}
+    .nodeMeta{font-size:12px; color:rgba(255,255,255,.72); line-height:1.35;}
+    .nodeBox{border-radius: 18px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.06); padding: 12px;}
+    .checkRow{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding: 10px 12px; border-radius: 16px;
+      background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.10);
+      margin-top: 8px;
+    }
+    .checkRow label{display:flex; gap:10px; align-items:center; font-size: 13px; color: rgba(255,255,255,.90); user-select:none;}
+    .checkRow input{width:18px; height:18px}
+    .heartRunner{
+      position:absolute; left: 13px; width: 28px; height: 28px;
+      transform: translateY(0px);
+      transition: transform .55s cubic-bezier(.2,.9,.2,1);
+      filter: drop-shadow(0 14px 30px rgba(255,77,109,.25));
+      z-index:3;
+    }
+    .treasure{
+      margin-top: 14px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding: 14px; border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(135deg, rgba(255,77,109,.18), rgba(255,143,171,.10));
+    }
+    .treasure h3{margin:0; font-size:16px; font-weight:950}
+    .treasure p{margin:4px 0 0; color:rgba(255,255,255,.72); font-size:12px; line-height:1.35}
+    .treasureBtn{min-width: 120px; justify-content:center; border-radius: 18px;}
+    .treasureBtn[disabled]{opacity:.45; cursor:not-allowed; transform:none !important;}
+    .modalOverlay{
+      position:fixed; inset:0; background: rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; padding:24px; z-index:50;
+    }
+    .modal{
+      width:min(420px, 92vw);
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(21,21,36,.78);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      padding: 18px 16px;
+      text-align:center;
+    }
+    .modalBig{font-size: 26px; font-weight: 1000; letter-spacing:.2px; margin: 8px 0 6px;}
+    .modalSmall{color: rgba(255,255,255,.78); font-size: 13px; line-height:1.35; margin:0 0 14px;}
+
+    /* Letter */
+    .letter{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      padding: 16px 14px;
+      line-height:1.55;
+      font-size: 15px;
+      box-shadow: var(--shadow);
+      white-space: pre-wrap;
+    }
+    .envelope{
+      width:100%; height:140px;
+      border-radius: var(--radius);
+      background: radial-gradient(600px 200px at 50% 0%, rgba(255,77,109,.26), transparent 60%),
+                  rgba(21,21,36,.68);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      display:flex; align-items:center; justify-content:center;
+      position:relative; overflow:hidden;
+    }
+    .envelope .seal{
+      width:74px; height:74px; border-radius:999px;
+      background: linear-gradient(135deg, rgba(255,77,109,.95), rgba(255,143,171,.92));
+      display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 18px 50px rgba(255,77,109,.22);
+      border:1px solid rgba(255,255,255,.18);
+      transform: rotate(-6deg);
+      font-weight: 1000;
+      letter-spacing: .8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading fade" role="dialog" aria-label="Start">
+    <div class="heartWrap">
+      <div class="pill">Tippe aufs Herz</div>
+
+      <button id="startHeart" class="heartBtn" aria-label="Start">
+        <svg viewBox="0 0 64 56" width="100%" height="100%" aria-hidden="true">
+          <defs>
+            <linearGradient id="hgrad" x1="10" y1="6" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#ff4d6d"/><stop offset="1" stop-color="#ff8fab"/>
+            </linearGradient>
+          </defs>
+          <path d="M32 54s-19-11-24-22C4.4 24.2 9 14.4 19 14c5.4-.2 9.6 2.5 13 6.6C35.4 16.5 39.6 13.8 45 14c10 .4 14.6 10.2 11 18-5 11-24 22-24 22z" fill="url(#hgrad)"/>
+        </svg>
+        <div class="namesInHeart">Kilian<br/>+<br/>Josie</div>
+      </button>
+
+      <div class="ring" aria-hidden="true"></div>
+      <div class="sub">Eine kleine App nur für uns ✨</div>
+      <div class="tiny" style="margin-top:10px">
+        Tipp: Nachher kannst du sie wie eine App installieren:
+        <span style="opacity:.9">Teilen → „Zum Home-Bildschirm“</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="home" class="screen" style="display:none">
+    <div class="content fade">
+      <div class="topbar">
+        <div class="title">❤️ Kilian + Josie <span class="pill" id="todayPill"></span></div>
+        <button class="btn small" id="installHintBtn" title="Installieren">⬇︎ App</button>
+      </div>
+
+      <div class="heartGrid">
+        <div class="heartTile" role="button" tabindex="0" id="goWir">
+          <svg class="heartBg" viewBox="0 0 64 56" aria-hidden="true">
+            <path d="M32 54s-19-11-24-22C4.4 24.2 9 14.4 19 14c5.4-.2 9.6 2.5 13 6.6C35.4 16.5 39.6 13.8 45 14c10 .4 14.6 10.2 11 18-5 11-24 22-24 22z" fill="url(#hgradHome)"/>
+            <defs><linearGradient id="hgradHome" x1="10" y1="6" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4d6d"/><stop offset="1" stop-color="#ff8fab"/></linearGradient></defs>
+          </svg>
+          <div class="heartTileHead">
+            <div><h3>Wir</h3><p>Fotos von uns als Diashow</p></div>
+            <span class="pill">📸</span>
+          </div>
+        </div>
+
+        <div class="heartTile" role="button" tabindex="0" id="goVal">
+          <svg class="heartBg" viewBox="0 0 64 56" aria-hidden="true">
+            <path d="M32 54s-19-11-24-22C4.4 24.2 9 14.4 19 14c5.4-.2 9.6 2.5 13 6.6C35.4 16.5 39.6 13.8 45 14c10 .4 14.6 10.2 11 18-5 11-24 22-24 22z" fill="url(#hgradHome2)"/>
+            <defs><linearGradient id="hgradHome2" x1="10" y1="6" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff8fab"/><stop offset="1" stop-color="#ff4d6d"/></linearGradient></defs>
+          </svg>
+          <div class="heartTileHead">
+            <div><h3>Valentinstag</h3><p>Schatzkarte mit To‑Dos & Häkchen</p></div>
+            <span class="pill">🗺️</span>
+          </div>
+        </div>
+
+        <div class="heartTile" role="button" tabindex="0" id="goLetter">
+          <svg class="heartBg" viewBox="0 0 64 56" aria-hidden="true">
+            <path d="M32 54s-19-11-24-22C4.4 24.2 9 14.4 19 14c5.4-.2 9.6 2.5 13 6.6C35.4 16.5 39.6 13.8 45 14c10 .4 14.6 10.2 11 18-5 11-24 22-24 22z" fill="url(#hgradHome3)"/>
+            <defs><linearGradient id="hgradHome3" x1="10" y1="6" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4d6d"/><stop offset="1" stop-color="#ff8fab"/></linearGradient></defs>
+          </svg>
+          <div class="heartTileHead">
+            <div><h3>💌</h3><p>Liebesbrief</p></div>
+            <span class="pill">💌</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="wir" class="screen" style="display:none">
+    <div class="content fade">
+      <div class="topbar">
+        <button class="btn small" id="backFromWir">← Zurück</button>
+        <div class="title">📸 Wir</div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="card">
+        <h3>Diashow</h3>
+        <p>Hier kommen eure Fotos rein.</p>
+
+        <div class="slideshow">
+          <img id="slideImg" class="slideImg" alt="Foto" />
+          <div class="slideControls">
+            <button class="ctrlBtn" id="prevBtn" aria-label="Vorheriges Foto">‹</button>
+            <div class="dots" id="dots" aria-label="Slide Punkte"></div>
+            <button class="ctrlBtn" id="nextBtn" aria-label="Nächstes Foto">›</button>
+          </div>
+        </div>
+
+        <div class="tiny" style="margin-top:10px">
+          Fotos einfügen: Lege Bilder in <code class="k">photos/</code> und trage sie oben in <code class="k">WIR_PHOTOS</code> ein.
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Optional: Fotos direkt auswählen</h3>
+        <p class="tiny">Funktioniert auf den meisten Handys. Wird nicht dauerhaft gespeichert.</p>
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap">
+          <input id="filePicker" type="file" accept="image/*" multiple style="max-width:100%" />
+          <button class="btn small" id="useBuiltInBtn">Platzhalter nutzen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="val" class="screen" style="display:none">
+    <div class="content fade">
+      <div class="topbar">
+        <button class="btn small" id="backFromVal">← Zurück</button>
+        <div class="title">🗺️ Schatzkarte</div>
+        <button class="btn small ghost" id="resetToday">Reset heute</button>
+      </div>
+
+      <div class="map">
+        <div class="mapTop">
+          <div>
+            <div class="mapTitle">Unser Weg heute</div>
+            <div class="mapHint">Wenn wir eine Station geschafft haben, haken wir sie ab ✅</div>
+          </div>
+          <span class="pill">❤️</span>
+        </div>
+
+        <div class="trail" id="trail">
+          <div class="trailLine" aria-hidden="true"></div>
+
+          <div class="heartRunner" id="heartRunner" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none">
+              <path d="M32 56s-19-11-24-22C4.4 26.2 9 16.4 19 16c5.4-.2 9.6 2.5 13 6.6C35.4 18.5 39.6 15.8 45 16c10 .4 14.6 10.2 11 18-5 11-24 22-24 22z" fill="url(#grad2)"/>
+              <defs><linearGradient id="grad2" x1="10" y1="14" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#ff4d6d"/><stop offset="1" stop-color="#ff8fab"/></linearGradient></defs>
+            </svg>
+          </div>
+
+          <div class="nodes" id="mapNodes"></div>
+        </div>
+
+        <div class="treasure">
+          <div>
+            <h3>Schatz</h3>
+            <p id="treasureHint">Mach erst alle Stationen fertig…</p>
+          </div>
+          <button class="btn primary treasureBtn" id="treasureBtn" disabled>❤️ Öffnen</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tiny">🔒 Alles bleibt nur auf diesem Handy (offline möglich). Reset löscht nur <b>heute</b>.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modalOverlay" id="modalOverlay" role="dialog" aria-modal="true">
+    <div class="modal fade">
+      <div class="pill">Schatz gefunden</div>
+      <div class="modalBig">Ich liebe dich. ❤️</div>
+      <p class="modalSmall">Für dich, Josie – jeden Tag aufs Neue.</p>
+      <button class="btn primary" id="closeModal" style="width:100%; justify-content:center; border-radius:18px; padding:12px 14px">Schließen</button>
+    </div>
+  </div>
+
+  <div id="letter" class="screen" style="display:none">
+    <div class="content fade">
+      <div class="topbar">
+        <button class="btn small" id="backFromLetter">← Zurück</button>
+        <div class="title">💌 Liebesbrief</div>
+        <div class="spacer"></div>
+      </div>
+
+      <div class="envelope"><div class="seal">K+J</div></div>
+      <div class="letter" id="letterText"></div>
+
+      <div class="card">
+        <h3>Text ändern</h3>
+        <p class="tiny">In <code class="k">index.html</code>: Variable <code class="k">LOVE_LETTER</code>.</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** =========================
+ *  1) HIER ANPASSEN
+ *  ========================= */
+const WIR_PHOTOS = [
+  "photos/wir1.JPG",
+  "photos/wir2.jpg",
+  "photos/wir3.jpeg",
+  "photos/wir4.jpeg",
+  "photos/wir5.JPG",
+  "photos/wir6.JPG",
+  "photos/wir7.jpeg",
+  "photos/wir8.jpeg",
+  "photos/wir9.jpeg",
+];
+
+const PLACEHOLDER_PHOTOS = [];
+
+
+// Schatzkarten-Stationen (keine Optionen mehr)
+const MAP_STEPS = [
+  { key:"step1", title:"Checkpoint 1: Leichte Aktivität (Josie's Chance gegen mich zu gewinnen)", desc:"(Bowling + Billard 14-16 Uhr)" },
+  { key:"step2", title:"Checkpoint 2: Goetheturm - Sonnenuntergang 17 Uhr ", desc:"(da ich weiß wie sehr du spatzieren liebst, können wir auch zur Not in der Innenstadt ein Cafe trinken gehen...)" },
+  { key:"step3", title:"Checkpoint 3: Abendessen", desc:"(Italiäner (Gentorellis) oder Sushi/Asiatisch (Chillinh) 19:00 Uhr)" },
+  { key:"step4", title:"Autokino", desc:"(Popcorn Süß oder Salzig?)" },
+];
+
+const LOVE_LETTER = `Meine Josie, ♡
+
+ich wollte dir mit dieser kleinen App einfach sagen:
+Du bist mein Lieblingsmensch.
+
+Danke, dass du mein Leben so warm, lustig und schön machst.
+Ich liebe dich – heute, morgen und an jedem Tag danach.
+
+Dein Kilian`;
+
+
+/** =========================
+ *  2) APP-LOGIK
+ *  ========================= */
+const $ = (id)=>document.getElementById(id);
+const screens = { loading:$("loading"), home:$("home"), wir:$("wir"), val:$("val"), letter:$("letter") };
+function show(name){ Object.entries(screens).forEach(([k,el])=>el.style.display=(k===name?"flex":"none")); }
+function todayKey(){ const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function setTodayPill(){ const d=new Date(); $("todayPill").textContent=d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit",year:"numeric"}); }
+function navCard(btnId, target){
+  const el=$(btnId);
+  el.addEventListener("click",()=>show(target));
+  el.addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" ") show(target); });
+}
+
+// Start heart
+$("startHeart").addEventListener("click",()=>{ localStorage.setItem("kj_started","1"); show("home"); });
+$("installHintBtn").addEventListener("click",()=>{ alert("iPhone: Teilen → „Zum Home-Bildschirm“\nAndroid: Menü (⋮) → „App installieren“ / „Zum Startbildschirm“"); });
+
+// Nav
+navCard("goWir","wir"); navCard("goVal","val"); navCard("goLetter","letter");
+$("backFromWir").addEventListener("click",()=>show("home"));
+$("backFromVal").addEventListener("click",()=>show("home"));
+$("backFromLetter").addEventListener("click",()=>show("home"));
+
+// Letter
+$("letterText").textContent = LOVE_LETTER;
+
+// Slideshow
+let photos = (WIR_PHOTOS && WIR_PHOTOS.length) ? WIR_PHOTOS.slice() : PLACEHOLDER_PHOTOS.slice();
+let idx=0, timer=null;
+function renderDots(){
+  const dots=$("dots"); dots.innerHTML="";
+  photos.forEach((_,i)=>{
+    const d=document.createElement("div");
+    d.className="dot"+(i===idx?" active":"");
+    d.addEventListener("click",()=>{ idx=i; renderSlide(); restartTimer(); });
+    dots.appendChild(d);
+  });
+}
+function renderSlide(){ $("slideImg").src=photos[idx]; renderDots(); }
+function next(){ idx=(idx+1)%photos.length; renderSlide(); }
+function prev(){ idx=(idx-1+photos.length)%photos.length; renderSlide(); }
+function restartTimer(){ if(timer) clearInterval(timer); timer=setInterval(next,4500); }
+$("nextBtn").addEventListener("click",()=>{ next(); restartTimer(); });
+$("prevBtn").addEventListener("click",()=>{ prev(); restartTimer(); });
+$("useBuiltInBtn").addEventListener("click",()=>{ photos=(WIR_PHOTOS && WIR_PHOTOS.length)?WIR_PHOTOS.slice():PLACEHOLDER_PHOTOS.slice(); idx=0; renderSlide(); restartTimer(); });
+$("filePicker").addEventListener("change",(e)=>{
+  const files=Array.from(e.target.files||[]);
+  if(!files.length) return;
+  photos=files.map(f=>URL.createObjectURL(f));
+  idx=0; renderSlide(); restartTimer();
+});
+
+// Map checklist storage
+function doneKey(stepKey){ return `kj_done_${todayKey()}_${stepKey}`; }
+function isDone(stepKey){ return localStorage.getItem(doneKey(stepKey))==="1"; }
+function setDone(stepKey,yes){ if(yes) localStorage.setItem(doneKey(stepKey),"1"); else localStorage.removeItem(doneKey(stepKey)); }
+function allDone(){ return MAP_STEPS.every(s=>isDone(s.key)); }
+
+function buildTreasureMap(){
+  const nodes=$("mapNodes");
+  nodes.innerHTML="";
+
+  MAP_STEPS.forEach((s,i)=>{
+    const done=isDone(s.key);
+
+    const node=document.createElement("div");
+    node.className="node";
+
+    const pin=document.createElement("div");
+    pin.className="pin"+(done?" done":"");
+    pin.textContent=done?"✓":(i+1);
+    node.appendChild(pin);
+
+    const t=document.createElement("div");
+    t.className="nodeTitle";
+    t.textContent=s.title;
+    node.appendChild(t);
+
+    const meta=document.createElement("div");
+    meta.className="nodeMeta";
+    meta.textContent=s.desc || "";
+    node.appendChild(meta);
+
+    const box=document.createElement("div");
+    box.className="nodeBox";
+
+    const checkRow=document.createElement("div");
+    checkRow.className="checkRow";
+
+    const label=document.createElement("label");
+    const cb=document.createElement("input");
+    cb.type="checkbox";
+    cb.checked=done;
+
+    const span=document.createElement("span");
+    span.textContent="Erledigt (abgehakt)";
+    label.appendChild(cb); label.appendChild(span);
+
+    const right=document.createElement("div");
+    right.className="tiny";
+    right.style.opacity=".85";
+    right.textContent = done ? "Nice 😌" : " ";
+
+    cb.addEventListener("change",()=>{ setDone(s.key,cb.checked); buildTreasureMap(); });
+
+    checkRow.appendChild(label);
+    checkRow.appendChild(right);
+    box.appendChild(checkRow);
+
+    node.appendChild(box);
+    nodes.appendChild(node);
+  });
+
+  // Runner position to next incomplete
+  const runner=$("heartRunner");
+  const nodeEls=Array.from(nodes.querySelectorAll(".node"));
+  const firstIncompleteIndex = MAP_STEPS.findIndex(s=>!isDone(s.key));
+  const targetIndex = firstIncompleteIndex===-1 ? Math.max(0,nodeEls.length-1) : firstIncompleteIndex;
+
+  const trail=$("trail");
+  const trailRect=trail.getBoundingClientRect();
+  let y=10;
+  if(nodeEls[targetIndex]){
+    const r=nodeEls[targetIndex].getBoundingClientRect();
+    y=(r.top-trailRect.top)+2;
+  }
+  runner.style.transform=`translateY(${Math.max(0,y)}px)`;
+
+  // Treasure
+  const tBtn=$("treasureBtn");
+  const tHint=$("treasureHint");
+  const doneAll=allDone();
+  tBtn.disabled=!doneAll;
+  tHint.textContent = doneAll ? "Alles geschafft — drück aufs Herz ❤️" : "Mach erst alle Stationen fertig…";
+}
+
+$("treasureBtn").addEventListener("click",()=>{
+  if(!allDone()) return;
+  $("modalOverlay").style.display="flex";
+});
+$("closeModal").addEventListener("click",()=>{ $("modalOverlay").style.display="none"; });
+$("modalOverlay").addEventListener("click",(e)=>{ if(e.target===$("modalOverlay")) $("modalOverlay").style.display="none"; });
+
+$("resetToday").addEventListener("click",()=>{
+  if(!confirm("Heutige Häkchen wirklich zurücksetzen?")) return;
+  MAP_STEPS.forEach(s=>localStorage.removeItem(doneKey(s.key)));
+  buildTreasureMap();
+});
+
+// Init
+(function init(){
+  setTodayPill();
+  buildTreasureMap();
+  renderSlide();
+  restartTimer();
+
+  const started = localStorage.getItem("kj_started")==="1";
+  show(started ? "home" : "loading");
+
+  if("serviceWorker" in navigator){ navigator.serviceWorker.register("./sw.js").catch(()=>{}); }
+})();
+</script>
+</body>
+</html>
